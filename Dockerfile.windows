@@ -1,0 +1,30 @@
+FROM python:3.11-windowsservercore as builder
+
+WORKDIR /app
+
+# Copier les fichiers du projet
+COPY . .
+
+# Installer les dépendances
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt && \
+    pip install pyinstaller
+
+# Compiler
+RUN pyinstaller \
+    --name=CorrectionApp \
+    --onefile \
+    --windowed \
+    --hidden-import=PyPDF2 \
+    --hidden-import=pdfplumber \
+    --hidden-import=pdf2image \
+    --hidden-import=PIL \
+    --hidden-import=openpyxl \
+    --hidden-import=odf \
+    --hidden-import=correction \
+    --collect-all=PyQt5 \
+    app_correction.py
+
+# Récupérer le .exe
+FROM scratch
+COPY --from=builder /app/dist/CorrectionApp.exe /CorrectionApp.exe
