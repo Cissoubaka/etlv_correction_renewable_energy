@@ -775,6 +775,12 @@ class CorrectionApp(QMainWindow):
         btn_select_correction.clicked.connect(self.select_correction_directory)
         config_layout.addWidget(btn_select_correction)
         
+        # Bouton pour importer les dates des deadlines depuis fichier ODS/Excel
+        btn_import_dates = QPushButton("📊 Importer dates (ODS/Excel)")
+        btn_import_dates.setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold;")
+        btn_import_dates.clicked.connect(self.import_deadlines_from_spreadsheet)
+        config_layout.addWidget(btn_import_dates)
+        
         main_layout.addLayout(config_layout)
         
         # ===== SECTION SÉLECTION WORKSHEET =====
@@ -2361,7 +2367,7 @@ class CorrectionDialog(QDialog):
             # Créer une spinbox éditable pour la note
             note_spinbox = QSpinBox()
             note_spinbox.setMinimum(0)
-            note_spinbox.setMaximum(999)
+            note_spinbox.setMaximum(barème_points)  # Le maximum de note = le barème
             note_spinbox.setValue(note_value)
             note_spinbox.valueChanged.connect(self._update_total_score)
             
@@ -2506,6 +2512,13 @@ class CorrectionDialog(QDialog):
         
         self.config_manager.config["bareme_points"][ws_key][barème_key] = value
         self.config_manager.save_config()
+        
+        # Mettre à jour le maximum de la note pour qu'elle ne dépasse pas le barème
+        note_spinbox = self.field_spinboxes[field_name]['note_spinbox']
+        note_spinbox.setMaximum(value)
+        # Si la note actuelle dépasse le nouveau barème, la réduire
+        if note_spinbox.value() > value:
+            note_spinbox.setValue(value)
     
     def _update_total_score(self):
         """Met à jour l'affichage du score total"""
@@ -2909,7 +2922,7 @@ class BatchCorrectionDialog(QDialog):
             # Créer une spinbox éditable pour la note
             note_spinbox = QSpinBox()
             note_spinbox.setMinimum(0)
-            note_spinbox.setMaximum(999)
+            note_spinbox.setMaximum(barème_points)  # Le maximum de note = le barème
             note_spinbox.setValue(note_value)
             
             note_spinbox.valueChanged.connect(
@@ -3006,6 +3019,13 @@ class BatchCorrectionDialog(QDialog):
         
         self.config_manager.config["bareme_points"][ws_key][barème_key] = value
         self.config_manager.save_config()
+        
+        # Mettre à jour le maximum de la note pour qu'elle ne dépasse pas le barème
+        note_spinbox = self.field_spinboxes[field_name]['note_spinbox']
+        note_spinbox.setMaximum(value)
+        # Si la note actuelle dépasse le nouveau barème, la réduire
+        if note_spinbox.value() > value:
+            note_spinbox.setValue(value)
         
         # Mettre à jour le score total en temps réel
         self._update_score_display()
